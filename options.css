@@ -19,6 +19,24 @@ h2 {
   margin-bottom: 12px;
   color: #555;
 }
+.list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.list-header h2 {
+  margin: 0;
+}
+.btn-export {
+  padding: 8px 14px;
+  font-size: 13px;
+  background: #111827;
+}
+.btn-export:hover {
+  background: #0b1220;
+}
 .import-section,
 .list-section {
   background: #fff;

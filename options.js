@@ -141,6 +141,44 @@ function maskSecret(secret) {
   return normalized.slice(0, 4) + '...' + normalized.slice(-4);
 }
 
+function buildOtpauthLink(entry) {
+  const name = String(entry.name || '').trim() || '未命名';
+  const issuer = String(entry.issuer || '').trim();
+  const label = issuer ? issuer + ':' + name : name;
+  const secret = String(entry.secret || '').replace(/\s/g, '');
+  const params = new URLSearchParams({ secret: secret });
+  if (issuer) params.set('issuer', issuer);
+  return 'otpauth://totp/' + encodeURIComponent(label) + '?' + params.toString();
+}
+
+function copyTextToClipboard(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(text).then(function() { return true; })
+      .catch(function() { return false; });
+  }
+  return new Promise(function(resolve) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    ta.style.top = '0';
+    ta.style.opacity = '0';
+    ta.style.pointerEvents = 'none';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    ta.setSelectionRange(0, text.length);
+    let ok = false;
+    try {
+      ok = document.execCommand('copy');
+    } finally {
+      document.body.removeChild(ta);
+    }
+    resolve(ok);
+  });
+}
+
 function renderList(entries) {
   const list = document.getElementById('entries-list');
   list.innerHTML = '';
@@ -378,6 +416,22 @@ async function importManual() {
   showMessage(document.querySelector('.import-section'), '已添加：' + name, 'success');
 }
 
+async function exportOtpauthJson() {
+  const entries = await getStorage();
+  if (!entries.length) {
+    showMessage(document.querySelector('.list-section'), '暂无可导出的密钥', 'error');
+    return;
+  }
+  const links = entries.map(buildOtpauthLink);
+  const payload = JSON.stringify(links, null, 2);
+  const ok = await copyTextToClipboard(payload);
+  if (ok) {
+    showMessage(document.querySelector('.list-section'), '已复制导出内容到剪贴板', 'success');
+  } else {
+    showMessage(document.querySelector('.list-section'), '复制失败，请重试', 'error');
+  }
+}
+
 function initTabs() {
   const buttons = Array.from(document.querySelectorAll('.tab-button'));
   const panels = Array.from(document.querySelectorAll('.tab-panel'));
@@ -401,6 +455,7 @@ function initOptionsPage() {
   const importOtpauthButton = document.getElementById('btn-import-otpauth');
   const importManualButton = document.getElementById('btn-import-manual');
   const importQrButton = document.getElementById('btn-import-qr');
+  const exportButton = document.getElementById('btn-export');
   if (!importOtpauthButton || !importManualButton || !importQrButton) {
     showFatalMessage('设置页初始化失败，请重新打开。');
     return;
@@ -410,6 +465,9 @@ function initOptionsPage() {
   importOtpauthButton.addEventListener('click', importFromOtpauth);
   importManualButton.addEventListener('click', importManual);
   importQrButton.addEventListener('click', importFromQr);
+  if (exportButton) {
+    exportButton.addEventListener('click', exportOtpauthJson);
+  }
 
   getStorage().then(renderList).catch(function() {
     showFatalMessage('加载失败，请刷新。');
