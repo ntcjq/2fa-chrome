@@ -99,10 +99,16 @@ function parseOtpauth(url) {
       if (!issuer && labelIssuer) issuer = labelIssuer;
       name = labelName || labelIssuer;
     }
+    const periodRaw = parsedUrl.searchParams.get('period');
+    const digitsRaw = parsedUrl.searchParams.get('digits');
+    const period = periodRaw && Number(periodRaw) > 0 ? Number(periodRaw) : 30;
+    const digits = digitsRaw && Number(digitsRaw) > 0 ? Number(digitsRaw) : 6;
     return {
       name: name || '未命名',
       secret,
       issuer,
+      period,
+      digits,
     };
   } catch (_) {
     return null;
@@ -148,6 +154,10 @@ function buildOtpauthLink(entry) {
   const secret = String(entry.secret || '').replace(/\s/g, '');
   const params = new URLSearchParams({ secret: secret });
   if (issuer) params.set('issuer', issuer);
+  const period = Number(entry.period);
+  const digits = Number(entry.digits);
+  if (period && period !== 30) params.set('period', String(period));
+  if (digits && digits !== 6) params.set('digits', String(digits));
   return 'otpauth://totp/' + encodeURIComponent(label) + '?' + params.toString();
 }
 
@@ -267,6 +277,8 @@ async function addEntry(entry) {
     issuer: entry.issuer || '',
     note: entry.note || '',
     urls: urls.map(normalizeUrlForDisplay),
+    period: entry.period || 30,
+    digits: entry.digits || 6,
   });
   await setStorage(entries);
   renderList(entries);

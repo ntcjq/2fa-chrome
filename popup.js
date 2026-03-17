@@ -51,7 +51,11 @@ function parseOtpauth(url) {
       if (!issuer && labelIssuer) issuer = labelIssuer;
       name = labelName || labelIssuer;
     }
-    return { name: name || '未命名', secret, issuer };
+    const periodRaw = u.searchParams.get('period');
+    const digitsRaw = u.searchParams.get('digits');
+    const period = periodRaw && Number(periodRaw) > 0 ? Number(periodRaw) : 30;
+    const digits = digitsRaw && Number(digitsRaw) > 0 ? Number(digitsRaw) : 6;
+    return { name: name || '未命名', secret, issuer, period, digits };
   } catch (_) {
     return null;
   }
@@ -86,6 +90,8 @@ async function addEntry(entry) {
     issuer: entry.issuer || '',
     note: entry.note || '',
     urls: urls.map(normalizeUrlForDisplay),
+    period: entry.period || 30,
+    digits: entry.digits || 6,
   };
   entries.push(newEntry);
   await setStorage(entries);
@@ -150,8 +156,10 @@ async function renderEntries(entries) {
 
   const fragment = document.createDocumentFragment();
   for (const entry of entries) {
-    const code = await TOTP.getTOTP(entry.secret);
-    const remaining = TOTP.getRemainingSeconds();
+    const period = Number(entry.period) || 30;
+    const digits = Number(entry.digits) || 6;
+    const code = await TOTP.getTOTP(entry.secret, { period, digits });
+    const remaining = TOTP.getRemainingSeconds(period);
     const labelText = entry.note
       ? buildLabel(entry) + ' (' + entry.note + ')'
       : buildLabel(entry);
@@ -197,18 +205,19 @@ async function refreshCodes() {
   const entries = await getStorage();
   const app = document.getElementById('app');
   const containers = app.querySelectorAll('.entry');
-  const remaining = TOTP.getRemainingSeconds();
   containers.forEach(async (el, i) => {
     const entry = entries[i];
     if (!entry) return;
-    const code = await TOTP.getTOTP(entry.secret);
+    const period = Number(entry.period) || 30;
+    const digits = Number(entry.digits) || 6;
+    const code = await TOTP.getTOTP(entry.secret, { period, digits });
     const codeEl = el.querySelector('.code');
     const secEl = el.querySelector('.seconds');
     if (codeEl) {
       codeEl.textContent = code;
       codeEl.dataset.code = code;
     }
-    if (secEl) secEl.textContent = remaining + 's';
+    if (secEl) secEl.textContent = TOTP.getRemainingSeconds(period) + 's';
   });
 }
 
