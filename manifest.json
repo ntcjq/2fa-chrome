@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "2FA 动码",
+  "version": "1.0.0",
+  "description": "导入 2FA 密钥，查看动码，点击复制；可配置适用地址后自动填入动码",
+  "permissions": ["storage", "tabs"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "2FA 动码",
+    "default_icon": {
+      "16": "images/icon16.png",
+      "32": "images/icon32.png",
+      "48": "images/icon48.png"
+    }
+  },
+  "options_page": "options.html",
+  "web_accessible_resources": [
+    { "resources": ["options.html", "options.css", "options.js", "lib/totp.js"], "matches": ["<all_urls>"] }
+  ],
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["lib/totp.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

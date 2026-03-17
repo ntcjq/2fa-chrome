@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width">
+  <title>2FA 动码 - 选项</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <h1>2FA 密钥管理</h1>
+    <section class="import-section">
+      <h2>导入密钥</h2>
+      <div class="import-tabs">
+        <div class="tab-buttons" role="tablist" aria-label="导入方式">
+          <button type="button" class="tab-button active" data-tab="tab-otpauth" role="tab" aria-selected="true">otpauth 链接</button>
+          <button type="button" class="tab-button" data-tab="tab-manual" role="tab" aria-selected="false">手动添加</button>
+          <button type="button" class="tab-button" data-tab="tab-qr" role="tab" aria-selected="false">二维码导入</button>
+        </div>
+        <div class="tab-panel active" id="tab-otpauth" role="tabpanel">
+          <div class="import-otpauth">
+            <label for="otpauth-input">otpauth 链接</label>
+            <textarea id="otpauth-input" placeholder="粘贴 otpauth://totp/... 链接" rows="2"></textarea>
+            <label for="otpauth-note">备注/名称（可选）</label>
+            <input type="text" id="otpauth-note" placeholder="例如：主号 / 测试环境">
+            <label for="otpauth-urls">适用地址（可选；填完整 URL 可只在动码页自动填入）</label>
+            <textarea id="otpauth-urls" placeholder="例如：github.com 或 https://domain/index/login/advanced" rows="1"></textarea>
+            <button type="button" id="btn-import-otpauth">从链接导入</button>
+          </div>
+        </div>
+        <div class="tab-panel" id="tab-manual" role="tabpanel">
+          <div class="import-manual">
+            <label>手动添加</label>
+            <input type="text" id="manual-name" placeholder="账户名">
+            <input type="text" id="manual-secret" placeholder="密钥 (Base32)">
+            <input type="text" id="manual-issuer" placeholder="发行者 (可选)">
+            <input type="text" id="manual-note" placeholder="备注/名称（可选）">
+            <label for="manual-urls">适用地址（可选；填完整 URL 可只在动码页自动填入）</label>
+            <input type="text" id="manual-urls" placeholder="例如：github.com 或 https://xxx/index/login/advanced">
+            <button type="button" id="btn-import-manual">添加</button>
+          </div>
+        </div>
+        <div class="tab-panel" id="tab-qr" role="tabpanel">
+          <div class="import-qr">
+            <label for="qr-file">二维码图片</label>
+            <input type="file" id="qr-file" accept="image/*">
+            <div class="qr-hint">支持截图或手机二维码照片，识别后自动解析 otpauth 链接。</div>
+            <label for="qr-note">备注/名称（可选）</label>
+            <input type="text" id="qr-note" placeholder="例如：主号 / 测试环境">
+            <label for="qr-urls">适用地址（可选；填完整 URL 可只在动码页自动填入）</label>
+            <textarea id="qr-urls" placeholder="例如：github.com 或 https://domain/index/login/advanced" rows="1"></textarea>
+            <button type="button" id="btn-import-qr">识别并导入</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="list-section">
+      <h2>已保存的密钥</h2>
+      <ul id="entries-list"></ul>
+    </section>
+  </div>
+  <script src="options.js"></script>
+</body>
+</html>
